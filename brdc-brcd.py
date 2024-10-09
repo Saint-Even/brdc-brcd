@@ -3,12 +3,16 @@
 import sys
 import os
 import pandas as pd
+import numpy as np
+
 
 class UserInterface:
     def __init__(self):
         pass
+
     def ask_user(self, message: str) -> str:
         return input("\n" + message + ": ")
+
     def notify_user(self, message: str) -> None:
         print(message)
 
@@ -21,17 +25,18 @@ class UserInterface:
                 choice = int(self.ask_user("Choose a menu option").strip())
                 if choice in range(1, len(menu) + 1):
                     return menu[choice]["func"]
-                else: 
+                else:
                     self.notify_user("The option must be in the menu")
             except(ValueError):
                 self.notify_user("Enter a number")
+
 
 class Barcoder:
     def __init__(self, fileName):
         self.inTable = pd.read_csv(fileName)
         self.outTable = pd.DataFrame()
-        self.selectedPlateName= "None"
-        
+        self.selectedPlateName = "None"
+
         #...source of the barcodes and protocol
         self.wellMap = {
             "A01": "CTCG",
@@ -136,11 +141,15 @@ class Barcoder:
         ui = UserInterface()
         #menu values are set here, func must match a filter function
         MENU = {
+            2:{
+                "label": "2022 Plate Organizers",
+                "func": "Filter_2022"
+            },
             1:{
                 "label": "2021 Plate Organizers",
                 "func": "Filter_2021"
             },
-            2:{
+            0:{
                 "label": "Method Testing",
                 "func": "Filter_Testing"
             }
@@ -155,7 +164,7 @@ class Barcoder:
         print("TEST this section is experimental")
         barcode = self.wellMap['A01']
         print(barcode)
-        
+
     def Filter_2021(self):
         #show summary of spreadsheet
         print("\nColumn Names")
@@ -173,7 +182,7 @@ class Barcoder:
                 if choice in range(1, plateMax+1):
                     plateNum = choice
                     break
-                else: 
+                else:
                     print("The option must be in the plate_num column")
             except(ValueError):
                 print("Enter a number")
@@ -185,7 +194,57 @@ class Barcoder:
         plateTable= plateTable.reset_index()
         self.selectedPlateName= plateTable.loc[1,'plate_name']
         plateTable= plateTable.drop(columns=['index','plate_num', 'plate_name', 'project_name', 'Source'])
-        
+
+        #convert well locations to barcodes
+        plateTable['well_A01']= plateTable['well_A01'].apply(self.wellToBC)
+        self.outTable= plateTable
+
+        #call to format check and pass the column name of the Sample Names
+        self.format('Sample')
+
+    def Filter_2022(self):
+        #show summary of spreadsheet
+        print("\nColumn Names")
+        print(self.inTable.columns)
+        print("\nPlate Organizer Summary")
+        summary = self.inTable.drop(columns=['well_A01', 'project_name', 'Sample', 'Source'])
+        summary = summary.drop_duplicates()
+        print(summary)
+
+        # user pick plate id, validate
+        plateMax = summary['plate_num'].max()
+        plateMax = plateMax.astype(np.int64)
+        plateNum = 0
+        while True:
+            try:
+                choice = int(input(f"\nSelect a plate number, out of {plateMax}: ").strip())
+                if choice in range(1, plateMax+1):
+                    plateNum = choice
+                    break
+                else:
+                    print("The option must be in the plate_num column")
+            except(ValueError):
+                print("Enter a number")
+
+        # subset to intermediate
+        plateTable = self.inTable.loc[self.inTable["plate_num"] == plateNum]
+        # save the selected plate name
+        plateTable = plateTable.reset_index()
+        self.selectedPlateName = plateTable.loc[1, 'plate_name']
+                                              
+        plateTable = plateTable.drop(columns=['index',
+                                              'plate_num',
+                                              'plate_name',
+                                              'project_name',
+                                              'Source',
+                                              'Field_plot22',
+                                              'Nursery',
+                                              'Unnamed: 8',
+                                              'Unnamed: 9',
+                                              'Unnamed: 10',
+                                              'Unnamed: 11'])
+        # print(plateTable.columns) # well_A01 and Sample only remaining
+
         #convert well locations to barcodes
         plateTable['well_A01']= plateTable['well_A01'].apply(self.wellToBC)
         self.outTable= plateTable
@@ -222,15 +281,19 @@ class Barcoder:
         #problem character replacement
         return sampleName.replace(" ", "_").replace("(", "-").replace(")", "-").replace(".", "_")
         #...strip end characters
-        
-        
+
+
 
     def write(self):
         #optional print to screen
         if input("\nEnter 'y' to view the barcode file: ") == 'y':
             print(self.outTable)
         #user filename
-        fileName= input(f"\nFor the selected plate: {self.selectedPlateName}\nEnter a name for the produced barcode file\nExample: <Reads_PlateDataFile>_barcodes.txt: ")
+        fileNameDef = f"{self.selectedPlateName}_barcodes.txt"
+        if input(f"\nEnter 'y' to use {fileNameDef} as the file name: ") == 'y':
+            fileName = fileNameDef
+        else:
+            fileName= input(f"\nFor the selected plate: {self.selectedPlateName}\nEnter a name for the produced barcode file\nExample: <Reads_PlateDataFile>_barcodes.txt: ")
         #write to disk
         self.outTable.to_csv(fileName, sep='\t', header=False, index=False)
 
