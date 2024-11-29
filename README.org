@@ -1,9 +1,10 @@
 * B.R.D.C. Barcode File Constructor
-
+#+begin_src
     ║▌║█║▌│║▌║▌█
     ║▌║█║▌│║▌║▌█
     ║▌║█║▌│║▌║▌█
     ║▌BRDC BRCD█
+#+end_src
 
 Brandon Research Development Centre BaRCoDe.
 
