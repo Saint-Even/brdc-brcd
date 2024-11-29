@@ -1,0 +1,98 @@
+* B.R.D.C. Barcode File Constructor
+
+    ║▌║█║▌│║▌║▌█
+    ║▌║█║▌│║▌║▌█
+    ║▌║█║▌│║▌║▌█
+    ║▌BRDC BRCD█
+
+Brandon Research Development Centre BaRCoDe.
+
+Interactive Command-line program to create barcode files for GBS pipelines.
+Specifically, cassetteGBS pipeline, custom plateOrganizer parsers can be added for other applications.
+
+** Run
+- Run the program from the command line, providing the plate organizer file as an argument:
+- =./brdc-brcd.py <plateOrganizer.csv>=
+
+** User Workflow
+*** Filter Selection:
+   - Choose a filter option from the presented menu:
+     - 2022 Plate Organizers
+     - 2021 Plate Organizers
+     - Method Testing (experimental)
+
+Note: Ensure your input CSV file is correctly formatted and contains the
+necessary columns for your chosen plate organizer year (2021 or 2022).
+You may add plate organizer filter formats and add them to the filterMenu.
+
+*** Plate Selection:
+   - View the summary of available plates from the plate organizer csv
+   - Enter the number of the desired plate when prompted
+
+*** Sample Name Validation:
+   - If any sample names contain invalid characters, you will be prompted to:
+     - Accept the suggested cleaned name, or
+     - Enter a new name manually
+
+*** Output Review (Optional):
+   - Choose whether to view the generated barcode data on screen
+
+*** File Naming:
+   - Accept the default filename or enter a custom name for the output file
+
+*** Process Completion:
+   - The program generates a tab-separated file containing barcodes and sample
+     names
+
+*** Additional Runs:
+   - Choose to run the process again for another plate or exit the program
+
+** Implementation
+
+*** The code defines three main classes:
+   - UserInterface: Handles user interactions
+   - Barcoder: Core functionality for processing plate data and generating barcodes
+   - A main() function to run the program
+
+*** Key functionalities:
+   - Reads a CSV file containing plate organizer data
+   - Allows users to filter and select specific plates
+   - Converts well locations to barcodes using a predefined mapping
+   - Validates and cleans sample names
+   - Generates a barcode file for the selected plate
+
+   - in the class Barcoder(), wellMap contains a well-barcode dictionary
+     - be certain to validate it against your lab processes
+#+begin_src python
+  self.wellMap = {
+      "A01": "CTCG",
+      "B01": "TGCA",
+      "C01": "ACTA",
+      # ...
+      "F12": "GTGAGGGT",
+      "G12": "TATCGGGA",
+      "H12": "TTCCTGGA"
+  }
+#+end_src
+
+*** The Barcoder class:
+   - Holds the input data, output data, and barcode mapping
+   - Contains methods for filtering (2021 and 2022 plate organizers)
+   - Handles data processing and formatting
+
+*** User interaction:
+   - Presents menus for selecting filtering options
+   - Prompts for plate selection and file naming
+   - Offers options to view generated data before saving
+
+*** Data processing:
+   - Filters input data based on user selection
+   - Converts well locations to barcodes
+   - Cleans and validates sample names
+
+*** Output:
+   - Generates a tab-separated file with barcodes and sample names
+
+The program is designed to be run from the command line, taking a plate
+organizer file as an argument. It allows for multiple runs without restarting
+the program.

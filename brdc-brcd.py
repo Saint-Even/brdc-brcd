@@ -231,7 +231,7 @@ class Barcoder:
         # save the selected plate name
         plateTable = plateTable.reset_index()
         self.selectedPlateName = plateTable.loc[1, 'plate_name']
-                                              
+
         plateTable = plateTable.drop(columns=['index',
                                               'plate_num',
                                               'plate_name',
@@ -280,9 +280,7 @@ class Barcoder:
     def nameCleaner(self, sampleName: str):
         #problem character replacement
         return sampleName.replace(" ", "_").replace("(", "-").replace(")", "-").replace(".", "_")
-        #...strip end characters
-
-
+        # TODO strip end characters
 
     def write(self):
         #optional print to screen
@@ -303,7 +301,6 @@ class Barcoder:
 
     def run(self):
         self.filterMenu()
-        #self.format() called by the filter selection
         self.write()
         self.reset()
 
